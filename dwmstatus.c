@@ -14,12 +14,13 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <alsa/asoundlib.h>
 
 #include <X11/Xlib.h>
 
-char *tzargentina = "America/Buenos_Aires";
-char *tzutc = "UTC";
-char *tzberlin = "Europe/Berlin";
+//char *tzutc = "UTC";
+char *tzberkeley = "America/Los_Angeles";
+char *tznewyork = "America/New_York";
 
 static Display *dpy;
 
@@ -93,6 +94,41 @@ loadavg(void)
 }
 
 char *
+get_vol(void)
+{
+    FILE *fp;
+    char path[5];
+    /* Open the command for reading. */
+    fp = popen("/usr/bin/amixer get Master | awk -F'[][]' 'END{ print $2 }'", "r");
+    if (fp == NULL) {
+        printf("Failed to run command\n" );
+        exit(1);
+    }
+    fgets(path, sizeof(path), fp);
+	/* close */
+    pclose(fp);
+
+	return smprintf("%s", path);
+}
+
+char *
+get_mem(void)
+{
+    FILE *fp;
+    char path[6];
+    /* Open the command for reading. */
+    fp = popen("/usr/bin/free -h | awk '(NR==2){ print $3 }'", "r");
+    if (fp == NULL) {
+        printf("Failed to run command\n" );
+        exit(1);
+    }
+    fgets(path, sizeof(path), fp);
+	/* close */
+    pclose(fp);
+
+	return smprintf("%s", path);
+}
+char *
 readfile(char *base, char *file)
 {
 	char *path, line[513];
@@ -112,7 +148,6 @@ readfile(char *base, char *file)
 
 	return smprintf("%s", line);
 }
-
 char *
 getbattery(char *base)
 {
@@ -182,30 +217,42 @@ main(void)
 	char *avgs;
 	char *bat;
 	char *bat1;
-	char *tmar;
-	char *tmutc;
-	char *tmbln;
+	char *tny;
+	char *tber;
 	char *t0, *t1, *t2;
+    char *vol;
+	char *mem;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "dwmstatus: cannot open display.\n");
 		return 1;
 	}
 
-	for (;;sleep(60)) {
+	for (;;sleep(1)) {
 		avgs = loadavg();
 		bat = getbattery("/sys/class/power_supply/BAT0");
 		bat1 = getbattery("/sys/class/power_supply/BAT1");
-		tmar = mktimes("%H:%M", tzargentina);
-		tmutc = mktimes("%H:%M", tzutc);
-		tmbln = mktimes("KW %W %a %d %b %H:%M %Z %Y", tzberlin);
-		t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
+		//tmar = mktimes("%H:%M", tzargentina);
+		//tmutc = mktimes("%H:%M", tzutc);
+		//tmbln = mktimes("KW %W %a %d %b %H:%M %Z %Y", tzberlin);
+		tny = mktimes("%H:%M", tznewyork);
+		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
+		tber = mktimes("%w %b %d, %Y %H:%M:%S", tzberkeley);
+		//tber = mktimes("%w %b %d, %Y %H:%M:%S %Z", tzberkeley);  
+		//t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
+		t0 = gettemperature("/sys/class/thermal/thermal_zone5", "temp");
 		t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
 		t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
-
-		status = smprintf("T:%s|%s|%s L:%s B:%s|%s A:%s U:%s %s",
-				t0, t1, t2, avgs, bat, bat1, tmar, tmutc,
-				tmbln);
+		vol = get_vol();
+		mem = get_mem();
+		/*status = smprintf("T:%s|%s|%s L:%s B:%s|%s N:%s U:%s %s",
+				t0, t1, t2, avgs, bat, bat1, tny, tmutc,
+				tber);*/
+		/*status = smprintf(" L:%s | B:%s | New York:%s | Berkeley:%s",
+				avgs, bat, tny, tber);
+		*/
+		status = smprintf("%s | %s | %s | %s | %s | NY: %s | B: %s",
+				t0, avgs, mem, bat, vol, tny, tber);
 		setstatus(status);
 
 		free(t0);
@@ -214,9 +261,10 @@ main(void)
 		free(avgs);
 		free(bat);
 		free(bat1);
-		free(tmar);
-		free(tmutc);
-		free(tmbln);
+		free(tny);
+		free(tber);
+		free(vol);
+		free(mem);
 		free(status);
 	}
 
