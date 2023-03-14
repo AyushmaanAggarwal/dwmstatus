@@ -142,8 +142,10 @@ readfile(char *base, char *file)
 	if (fd == NULL)
 		return NULL;
 
-	if (fgets(line, sizeof(line)-1, fd) == NULL)
+	if (fgets(line, sizeof(line)-1, fd) == NULL) {
+		fclose(fd);
 		return NULL;
+	}
 	fclose(fd);
 
 	return smprintf("%s", line);
@@ -210,6 +212,27 @@ gettemperature(char *base, char *sensor)
 	return smprintf("%02.0f°C", atof(co) / 1000);
 }
 
+char *
+execscript(char *cmd)
+{
+	FILE *fp;
+	char retval[1025], *rv;
+
+	memset(retval, 0, sizeof(retval));
+
+	fp = popen(cmd, "r");
+	if (fp == NULL)
+		return smprintf("");
+
+	rv = fgets(retval, sizeof(retval), fp);
+	pclose(fp);
+	if (rv == NULL)
+		return smprintf("");
+	retval[strlen(retval)-1] = '\0';
+
+	return smprintf("%s", retval);
+}
+
 int
 main(void)
 {
@@ -232,9 +255,7 @@ main(void)
 		avgs = loadavg();
 		bat = getbattery("/sys/class/power_supply/BAT0");
 		bat1 = getbattery("/sys/class/power_supply/BAT1");
-		//tmar = mktimes("%H:%M", tzargentina);
 		//tmutc = mktimes("%H:%M", tzutc);
-		//tmbln = mktimes("KW %W %a %d %b %H:%M %Z %Y", tzberlin);
 		tny = mktimes("%H:%M", tznewyork);
 		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
 		tber = mktimes("%w %b %d, %Y %H:%M:%S", tzberkeley);
@@ -257,7 +278,6 @@ main(void)
 
 		free(t0);
 		free(t1);
-		free(t2);
 		free(avgs);
 		free(bat);
 		free(bat1);
