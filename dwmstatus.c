@@ -258,7 +258,7 @@ main(void)
 		//tmutc = mktimes("%H:%M", tzutc);
 		tny = mktimes("%H:%M", tznewyork);
 		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
-		tber = mktimes("%w %b %d, %Y %H:%M:%S", tzberkeley);
+		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
 		//tber = mktimes("%w %b %d, %Y %H:%M:%S %Z", tzberkeley);  
 		//t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
 		t0 = gettemperature("/sys/class/thermal/thermal_zone5", "temp");
