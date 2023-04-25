@@ -242,7 +242,7 @@ main(void)
 	char *bat1;
 	char *tny;
 	char *tber;
-	char *t0, *t1, *t2;
+	char *t0;//, *t1, *t2;
     char *vol;
 	char *mem;
 
@@ -262,8 +262,8 @@ main(void)
 		//tber = mktimes("%w %b %d, %Y %H:%M:%S %Z", tzberkeley);  
 		//t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
 		t0 = gettemperature("/sys/class/thermal/thermal_zone5", "temp");
-		t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
-		t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
+		//t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
+		//t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
 		vol = get_vol();
 		mem = get_mem();
 		/*status = smprintf("T:%s|%s|%s L:%s B:%s|%s N:%s U:%s %s",
@@ -277,7 +277,6 @@ main(void)
 		setstatus(status);
 
 		free(t0);
-		free(t1);
 		free(avgs);
 		free(bat);
 		free(bat1);
