@@ -261,7 +261,7 @@ main(void)
 		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
 		//tber = mktimes("%w %b %d, %Y %H:%M:%S %Z", tzberkeley);  
 		//t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
-		t0 = gettemperature("/sys/class/thermal/thermal_zone5", "temp");
+		t0 = gettemperature("/sys/class/thermal/thermal_zone1", "temp");
 		//t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
 		//t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
 		vol = get_vol();
