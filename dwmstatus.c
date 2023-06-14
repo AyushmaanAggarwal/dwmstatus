@@ -213,6 +213,22 @@ gettemperature(char *base, char *sensor)
 }
 
 char *
+getbrightness(char *current, char *max)
+{
+	char *cu;
+	char *ma;
+
+	cu = readfile(current);
+	if (cu == NULL)
+		return smprintf("");
+	
+	ma = readfile(max);
+	if (ma == NULL)
+		return smprintf("");
+	return smprintf("%02.0f", atof(cu) / atof(max) * 100);
+}
+
+char *
 execscript(char *cmd)
 {
 	FILE *fp;
@@ -243,6 +259,7 @@ main(void)
 	char *tny;
 	char *tber;
 	char *t0;//, *t1, *t2;
+	char *bright;
     char *vol;
 	char *mem;
 
@@ -266,14 +283,15 @@ main(void)
 		//t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
 		vol = get_vol();
 		mem = get_mem();
+		bright = getbrightness("/sys/class/backlight/intel_backlight/brightness", "/sys/class/backlight/intel_backlight/max_brightness")
 		/*status = smprintf("T:%s|%s|%s L:%s B:%s|%s N:%s U:%s %s",
 				t0, t1, t2, avgs, bat, bat1, tny, tmutc,
 				tber);*/
 		/*status = smprintf(" L:%s | B:%s | New York:%s | Berkeley:%s",
 				avgs, bat, tny, tber);
 		*/
-		status = smprintf("%s | %s | %s | %s | %s | NY: %s | B: %s",
-				t0, avgs, mem, bat, vol, tny, tber);
+		status = smprintf("%s | %s | %s | %s | %s | %s | NY: %s | B: %s",
+				t0, avgs, mem, bat, vol, bright, tny, tber);
 		setstatus(status);
 
 		free(t0);
@@ -285,6 +303,7 @@ main(void)
 		free(vol);
 		free(mem);
 		free(status);
+		free(bright);
 	}
 
 	XCloseDisplay(dpy);
