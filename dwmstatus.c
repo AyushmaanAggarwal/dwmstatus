@@ -202,7 +202,7 @@ getbattery(char *base)
 }
 
 char *
-gettemperature(char *base, char *sensor)
+get_temperature(char *base, char *sensor)
 {
 	char *co;
 
@@ -213,19 +213,15 @@ gettemperature(char *base, char *sensor)
 }
 
 char *
-getbrightness(char *current, char *max)
+get_brightness(char *base, char *current)
 {
 	char *cu;
-	char *ma;
 
-	cu = readfile(current);
+	cu = readfile(base, current);
 	if (cu == NULL)
 		return smprintf("");
 	
-	ma = readfile(max);
-	if (ma == NULL)
-		return smprintf("");
-	return smprintf("%02.0f", atof(cu) / atof(max) * 100);
+	return smprintf("%02.0f%", atof(cu) / 960);
 }
 
 char *
@@ -255,12 +251,11 @@ main(void)
 	char *status;
 	char *avgs;
 	char *bat;
-	char *bat1;
 	char *tny;
 	char *tber;
-	char *t0;//, *t1, *t2;
+	char *t0;
 	char *bright;
-    char *vol;
+     	char *vol;
 	char *mem;
 
 	if (!(dpy = XOpenDisplay(NULL))) {
@@ -271,33 +266,19 @@ main(void)
 	for (;;sleep(1)) {
 		avgs = loadavg();
 		bat = getbattery("/sys/class/power_supply/BAT0");
-		bat1 = getbattery("/sys/class/power_supply/BAT1");
-		//tmutc = mktimes("%H:%M", tzutc);
 		tny = mktimes("%H:%M", tznewyork);
 		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
-		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
-		//tber = mktimes("%w %b %d, %Y %H:%M:%S %Z", tzberkeley);  
-		//t0 = gettemperature("/sys/devices/virtual/hwmon/hwmon0", "temp1_input");
-		t0 = gettemperature("/sys/class/thermal/thermal_zone1", "temp");
-		//t1 = gettemperature("/sys/devices/virtual/hwmon/hwmon2", "temp1_input");
-		//t2 = gettemperature("/sys/devices/virtual/hwmon/hwmon4", "temp1_input");
+		t0 = get_temperature("/sys/class/thermal/thermal_zone1", "temp");
 		vol = get_vol();
 		mem = get_mem();
-		bright = getbrightness("/sys/class/backlight/intel_backlight/brightness", "/sys/class/backlight/intel_backlight/max_brightness")
-		/*status = smprintf("T:%s|%s|%s L:%s B:%s|%s N:%s U:%s %s",
-				t0, t1, t2, avgs, bat, bat1, tny, tmutc,
-				tber);*/
-		/*status = smprintf(" L:%s | B:%s | New York:%s | Berkeley:%s",
-				avgs, bat, tny, tber);
-		*/
-		status = smprintf("%s | %s | %s | %s | %s | %s | NY: %s | B: %s",
+		bright = get_brightness("/sys/class/backlight/intel_backlight", "brightness");
+		status = smprintf(" %s %s |  %s |  %s |  %s |  %s | NY: %s | B: %s",
 				t0, avgs, mem, bat, vol, bright, tny, tber);
 		setstatus(status);
 
 		free(t0);
 		free(avgs);
 		free(bat);
-		free(bat1);
 		free(tny);
 		free(tber);
 		free(vol);
