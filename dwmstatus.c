@@ -18,7 +18,6 @@
 
 #include <X11/Xlib.h>
 
-//char *tzutc = "UTC";
 char *tzberkeley = "America/Los_Angeles";
 char *tznewyork = "America/New_York";
 
@@ -83,7 +82,7 @@ setstatus(char *str)
 }
 
 char *
-loadavg(void)
+get_loadavg(void)
 {
 	double avgs[3];
 
@@ -151,7 +150,7 @@ readfile(char *base, char *file)
 	return smprintf("%s", line);
 }
 char *
-getbattery(char *base)
+get_battery(char *base)
 {
 	char *co, status;
 	int descap, remcap;
@@ -221,7 +220,7 @@ get_brightness(char *base, char *current)
 	if (cu == NULL)
 		return smprintf("");
 	
-	return smprintf("%02.0f%", atof(cu) / 960);
+	return smprintf("%02.0f%%", atof(cu) / 960);
 }
 
 char *
@@ -264,15 +263,15 @@ main(void)
 	}
 
 	for (;;sleep(1)) {
-		avgs = loadavg();
-		bat = getbattery("/sys/class/power_supply/BAT0");
+		avgs = get_loadavg();
+		bat = get_battery("/sys/class/power_supply/BAT0");
 		tny = mktimes("%H:%M", tznewyork);
 		tber = mktimes("%b %d, %Y %H:%M:%S", tzberkeley);
-		t0 = get_temperature("/sys/class/thermal/thermal_zone1", "temp");
+		t0 = get_temperature("/sys/class/thermal/thermal_zone6", "temp");
 		vol = get_vol();
 		mem = get_mem();
 		bright = get_brightness("/sys/class/backlight/intel_backlight", "brightness");
-		status = smprintf(" %s %s |  %s |  %s |  %s |  %s | NY: %s | B: %s",
+		status = smprintf("  %s %s |  %s |  %s |  %s |  %s | NY: %s | B: %s",
 				t0, avgs, mem, bat, vol, bright, tny, tber);
 		setstatus(status);
 
@@ -291,4 +290,3 @@ main(void)
 
 	return 0;
 }
-
